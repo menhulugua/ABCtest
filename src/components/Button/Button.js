@@ -5,7 +5,7 @@ import "./Button.css";
 /**
  * <Button
  *   className="MyButton"
- *   onClick={() => console.log('Click')} 
+ *   onClick={() => console.log('Click')}
  * />
  *
  * @prop {Function} onClick
@@ -17,6 +17,7 @@ export default function Button(props) {
 
   return (
     <button
+      aria-label="Search"
       type="button"
       className={"Button " + (className || "")}
       onClick={onClick}

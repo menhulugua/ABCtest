@@ -22,7 +22,8 @@ export default class App extends Component {
       suburb: "",
       suburbDetail: null,
       resultList: [],
-      loading: false
+      loading: false,
+      searchTimeout: null
     };
   }
 
@@ -31,7 +32,7 @@ export default class App extends Component {
   }
 
   callAPI = (value) => {
-    this.setState({loading: true});
+    this.setState({loading: true, searchTimeout: null});
     fetch(API_URL + value)
       .then(res => res.json())
       .then(
@@ -68,8 +69,14 @@ export default class App extends Component {
   }
 
   onInputChange = (value) => {
+    if (!this.state.searchTimeout)
+      this.setState({searchTimeout: setTimeout(() => {this.callAPI(value);}, 500)});
+    else {
+      clearTimeout(this.state.searchTimeout);
+      this.setState({searchTimeout: setTimeout(() => {this.callAPI(value);}, 500)});
+    }
     this.setState({suburb: value});
-    this.callAPI(value);
+
   }
 
   onSelectItem = (item) => {
@@ -80,7 +87,7 @@ export default class App extends Component {
     return (
       <section>
         <Input value={this.state.suburb} onChange={this.onInputChange}/>
-        {this.state.suburb && <ResultsList onSelect={this.onSelectItem} items={this.state.resultList} loading={this.state.loading}/>}
+        {this.state.suburb && !this.state.searchTimeout && <ResultsList onSelect={this.onSelectItem} items={this.state.resultList} loading={this.state.loading}/>}
         <Button onClick={this.onClickButton}/>
       </section>
     );
