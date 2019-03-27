@@ -15,18 +15,15 @@ import "./ResultsList.css";
 export default function ResultsList(props) {
   const { className, onSelect, items, loading, ...otherProps } = props;
 
-
-
+  let List;
   if (loading) {
-    return(
-      <ul className={"ResultsList " + (className || "")} {...otherProps} aria-busy={loading}>
-        <img src="./loading.gif" className="loadingIcon" alt="loading icon"/>
-      </ul>
+    List = (
+      <img src="./loading.gif" className="loadingIcon" alt="loading icon"/>
     );
   } else {
     if (items.length) {
-      return (
-        <ul className={"ResultsList " + (className || "")} {...otherProps} aria-busy={loading}>
+      List = (
+        <ul>
           {items.map(function(item, index) {
             return (
               <li
@@ -45,11 +42,51 @@ export default function ResultsList(props) {
         </ul>
       );
     } else {
-      return (
-        <ul className={"ResultsList " + (className || "")} {...otherProps} aria-busy={loading}>
-          <p tabIndex="0">No result found</p>
-        </ul>
+      List = (
+        <p tabIndex="0">No result found</p>
       );
     }
   }
+
+  return (
+    <div className={"ResultsList " + (className || "")} {...otherProps} aria-busy={loading}>
+      {List}
+    </div>
+  );
+
+  // if (loading) {
+  //   return(
+  //     <ul className={"ResultsList " + (className || "")} {...otherProps} aria-busy={loading}>
+  //       <img src="./loading.gif" className="loadingIcon" alt="loading icon"/>
+  //     </ul>
+  //   );
+  // } else {
+  //   if (items.length) {
+  //     return (
+  //       <ul className={"ResultsList " + (className || "")} {...otherProps} aria-busy={loading}>
+  //         {items.map(function(item, index) {
+  //           return (
+  //             <li
+  //               key={"item" + index}
+  //               className="ResultsList-item"
+  //               onClick={() => onSelect && onSelect(item)}
+  //               onFocus={(e) => e.target.setAttribute('aria-selected', true)}
+  //               onBlur={(e) => e.target.removeAttribute('aria-selected')}
+  //             >
+  //               <button className="ResultsList-button">
+  //                 {item.name}, {item.state.abbreviation}
+  //               </button>
+  //             </li>
+  //           );
+  //         })}
+  //       </ul>
+  //     );
+  //   } else {
+  //     return (
+  //       <ul className={"ResultsList " + (className || "")} {...otherProps} aria-busy={loading}>
+  //         <p tabIndex="0">No result found</p>
+  //       </ul>
+  //     );
+  //   }
+  // }
 }

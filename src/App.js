@@ -3,6 +3,7 @@ import ResultsList from "./components/ResultsList/ResultsList";
 import Input from "./components/Input/Input";
 import Button from "./components/Button/Button";
 import "./App.css";
+import _ from "lodash";
 
 const API_URL = "http://localhost:8010/proxy/suburbs.json?q=";
 
@@ -22,35 +23,71 @@ export default class App extends Component {
       suburb: "",
       suburbDetail: null,
       resultList: [],
-      loading: false,
-      searchTimeout: null
+      loading: false
     };
   }
 
-  componendDidMount() {
-
+  componentDidMount() {
+    document.addEventListener("keyup", this.handleKeyUp);
   }
 
-  callAPI = (value) => {
-    this.setState({loading: true, searchTimeout: null});
-    fetch(API_URL + value)
-      .then(res => res.json())
-      .then(
-        (result) => {
-          this.setState({loading: false});
-          let filteredResult = result.filter((item)=>{
-            return item.name.toLowerCase().indexOf(value.toLowerCase()) === 0;
-          });
-          this.setState({
-            resultList: filteredResult
-          });
-        },
-        (error) => {
-          this.setState({loading: false});
-          alert('Error calling API');
-        }
-      )
+  handleKeyUp = (event) => {
+    if (document.activeElement.classList.value === 'ResultsList-button') {
+      let nodes = Array.prototype.slice.call( document.getElementsByClassName('ResultsList-button'));
+      let length = nodes.length;
+      let index = nodes.indexOf(document.activeElement);
+      if (event.keyCode === 38) {
+        if (index === 0)
+          nodes[length - 1].focus();
+        else
+          nodes[index - 1].focus();
+      } else if (event.keyCode === 40) {
+        if (index === length - 1)
+          nodes[0].focus();
+        else
+          nodes[index + 1].focus();
+      }
+    }
   }
+
+  // callAPI = _.throttle((value) => {
+  //   this.setState({loading: true});
+  //     fetch(API_URL + value)
+  //       .then(res => res.json())
+  //       .then(
+  //         (result) => {
+  //           this.setState({loading: false});
+  //           let filteredResult = result.filter((item)=>{
+  //             return item.name.toLowerCase().indexOf(value.toLowerCase()) === 0;
+  //           });
+  //           this.setState({
+  //             resultList: filteredResult
+  //           });
+  //         },
+  //         (error) => {
+  //           this.setState({loading: false});
+  //           alert('Error calling API');
+  //         }
+  //   )},500);
+
+  callAPI = _.debounce(async(value) => {
+    try {
+      this.setState({loading: true, suburb: value});
+      let res = await fetch(API_URL + value);
+      let result = await res.json();
+      this.setState({loading: false});
+      let filteredResult = result.filter((item)=>{
+        return item.name.toLowerCase().indexOf(value.toLowerCase()) === 0;
+      });
+      this.setState({
+        resultList: filteredResult
+      });
+    } catch(error) {
+      this.setState({loading: false});
+      alert('Error calling API');
+    }
+
+  },500);
 
   onClickButton = () => {
     if (this.state.suburb) {
@@ -68,17 +105,6 @@ export default class App extends Component {
     }
   }
 
-  onInputChange = (value) => {
-    if (!this.state.searchTimeout)
-      this.setState({searchTimeout: setTimeout(() => {this.callAPI(value);}, 500)});
-    else {
-      clearTimeout(this.state.searchTimeout);
-      this.setState({searchTimeout: setTimeout(() => {this.callAPI(value);}, 500)});
-    }
-    this.setState({suburb: value});
-
-  }
-
   onSelectItem = (item) => {
     this.setState({suburb: item.name, suburbDetail: item});
   }
@@ -86,8 +112,8 @@ export default class App extends Component {
   render() {
     return (
       <section>
-        <Input value={this.state.suburb} onChange={this.onInputChange}/>
-        {this.state.suburb && !this.state.searchTimeout && <ResultsList onSelect={this.onSelectItem} items={this.state.resultList} loading={this.state.loading}/>}
+        <Input value={this.state.suburb} onChange={this.callAPI}/>
+        {this.state.suburb && <ResultsList onSelect={this.onSelectItem} items={this.state.resultList} loading={this.state.loading}/>}
         <Button onClick={this.onClickButton}/>
       </section>
     );
